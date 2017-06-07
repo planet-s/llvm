@@ -23,8 +23,7 @@
 // std::call_once from libc++ is used on all Unix platforms. Other
 // implementations like libstdc++ are known to have problems on NetBSD,
 // OpenBSD and PowerPC.
-#if defined(LLVM_ON_UNIX) && (defined(_LIBCPP_VERSION) ||                      \
-    !(defined(__NetBSD__) || defined(__OpenBSD__) || defined(__ppc__)))
+#if 0
 #define LLVM_THREADING_USE_STD_CALL_ONCE 1
 #else
 #define LLVM_THREADING_USE_STD_CALL_ONCE 0

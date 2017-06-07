@@ -104,6 +104,7 @@ static void RegisterHandler(int Signal) {
   assert(NumRegisteredSignals < array_lengthof(RegisteredSignalInfo) &&
          "Out of space for signal handlers!");
 
+/*
   struct sigaction NewHandler;
 
   NewHandler.sa_handler = SignalHandler;
@@ -113,6 +114,7 @@ static void RegisterHandler(int Signal) {
   // Install the new handler, save the old one in RegisteredSignalInfo.
   sigaction(Signal, &NewHandler,
             &RegisteredSignalInfo[NumRegisteredSignals].SA);
+*/
   RegisteredSignalInfo[NumRegisteredSignals].SigNo = Signal;
   ++NumRegisteredSignals;
 }

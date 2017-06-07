@@ -72,6 +72,7 @@ public:
   /// Blocking destructor: the pool will wait for all the threads to complete.
   ~ThreadPool();
 
+#if 0
   /// Asynchronous submission of a task to the pool. The returned future can be
   /// used to wait for the task to finish and is *non-blocking* on destruction.
   template <typename Function, typename... Args>
@@ -88,7 +89,9 @@ public:
       return VoidTy();
     });
 #endif
+
   }
+#endif
 
   /// Asynchronous submission of a task to the pool. The returned future can be
   /// used to wait for the task to finish and is *non-blocking* on destruction.
@@ -106,6 +109,7 @@ public:
   void wait();
 
 private:
+  /*
   /// Asynchronous submission of a task to the pool. The returned future can be
   /// used to wait for the task to finish and is *non-blocking* on destruction.
   std::shared_future<VoidTy> asyncImpl(TaskTy F);
@@ -126,6 +130,7 @@ private:
 
   /// Keep track of the number of thread actually busy
   std::atomic<unsigned> ActiveThreads;
+  */
 
 #if LLVM_ENABLE_THREADS // avoids warning for unused variable
   /// Signal for the destruction of the pool, asking thread to exit.

@@ -21,17 +21,11 @@
 #include "llvm/Config/config.h"
 #include <cctype>
 #include <string>
-#include <sys/utsname.h>
 
 using namespace llvm;
 
 static std::string getOSVersion() {
-  struct utsname info;
-
-  if (uname(&info))
-    return "";
-
-  return info.release;
+  return "";
 }
 
 std::string sys::getDefaultTargetTriple() {
