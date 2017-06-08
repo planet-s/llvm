@@ -447,6 +447,7 @@ llvm::sys::writeFileWithEncoding(StringRef FileName, StringRef Contents,
 }
 
 bool llvm::sys::commandLineFitsWithinSystemLimits(StringRef Program, ArrayRef<const char*> Args) {
+/*
   static long ArgMax = sysconf(_SC_ARG_MAX);
 
   // System says no practical limit.
@@ -464,6 +465,7 @@ bool llvm::sys::commandLineFitsWithinSystemLimits(StringRef Program, ArrayRef<co
       return false;
     }
   }
+*/
   return true;
 }
 }

@@ -19,6 +19,8 @@
 #include "Unix.h"
 #include <limits.h>
 #include <stdio.h>
+#include <fstream>
+#include <sstream>
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
@@ -65,6 +67,7 @@
 #endif
 
 #include <sys/types.h>
+#if 0
 #if !defined(__APPLE__) && !defined(__OpenBSD__) && !defined(__ANDROID__)
 #include <sys/statvfs.h>
 #define STATVFS statvfs
@@ -80,6 +83,7 @@
 #endif
 #define STATVFS statfs
 #define STATVFS_F_FRSIZE(vfs) static_cast<uint64_t>(vfs.f_bsize)
+#endif
 #endif
 
 
@@ -193,7 +197,12 @@ std::string getMainExecutable(const char *argv0, void *MainAddr) {
   if (realpath(DLInfo.dli_fname, link_path))
     return link_path;
 #else
-#error GetMainExecutable is not implemented on this host yet.
+  std::ifstream file("sys:exe");
+  std::stringstream buf;
+  buf << file.rdbuf();
+  return buf.str();
+//#error GetMainExecutable is not implemented on this host yet.
+  
 #endif
   return "";
 }
@@ -211,14 +220,16 @@ UniqueID file_status::getUniqueID() const {
 }
 
 ErrorOr<space_info> disk_space(const Twine &Path) {
+  /*
   struct STATVFS Vfs;
   if (::STATVFS(Path.str().c_str(), &Vfs))
     return std::error_code(errno, std::generic_category());
   auto FrSize = STATVFS_F_FRSIZE(Vfs);
+  */
   space_info SpaceInfo;
-  SpaceInfo.capacity = static_cast<uint64_t>(Vfs.f_blocks) * FrSize;
-  SpaceInfo.free = static_cast<uint64_t>(Vfs.f_bfree) * FrSize;
-  SpaceInfo.available = static_cast<uint64_t>(Vfs.f_bavail) * FrSize;
+  SpaceInfo.capacity = 1000000000;
+  SpaceInfo.free = 1000000000;
+  SpaceInfo.available = 1000000000;
   return SpaceInfo;
 }
 
