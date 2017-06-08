@@ -91,7 +91,6 @@ public:
 #endif
 
   }
-#endif
 
   /// Asynchronous submission of a task to the pool. The returned future can be
   /// used to wait for the task to finish and is *non-blocking* on destruction.
@@ -103,6 +102,7 @@ public:
     return asyncImpl([F] (VoidTy) -> VoidTy { F(); return VoidTy(); });
 #endif
   }
+#endif
 
   /// Blocking wait for all the threads to complete and the queue to be empty.
   /// It is an error to try to add new tasks while blocking on this call.

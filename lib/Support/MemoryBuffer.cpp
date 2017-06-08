@@ -187,6 +187,7 @@ MemoryBuffer::getFileSlice(const Twine &FilePath, uint64_t MapSize,
 // MemoryBuffer::getFile implementation.
 //===----------------------------------------------------------------------===//
 
+#if 0
 namespace {
 /// \brief Memory maps a file descriptor using sys::fs::mapped_file_region.
 ///
@@ -231,6 +232,7 @@ public:
   }
 };
 }
+#endif
 
 static ErrorOr<std::unique_ptr<MemoryBuffer>>
 getMemoryBufferForStream(int FD, const Twine &BufferName) {
@@ -364,6 +366,7 @@ getOpenFileImpl(int FD, const Twine &Filename, uint64_t FileSize,
     MapSize = FileSize;
   }
 
+  /*
   if (shouldUseMmap(FD, FileSize, MapSize, Offset, RequiresNullTerminator,
                     PageSize, IsVolatileSize)) {
     std::error_code EC;
@@ -373,6 +376,7 @@ getOpenFileImpl(int FD, const Twine &Filename, uint64_t FileSize,
     if (!EC)
       return std::move(Result);
   }
+  */
 
   std::unique_ptr<MemoryBuffer> Buf =
       MemoryBuffer::getNewUninitMemBuffer(MapSize, Filename);

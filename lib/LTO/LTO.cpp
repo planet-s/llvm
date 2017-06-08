@@ -1,3 +1,4 @@
+#if 0
 //===-LTO.cpp - LLVM Link Time Optimizer ----------------------------------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -937,3 +938,4 @@ Error LTO::runThinLTO(AddStreamFn AddStream, NativeObjectCache Cache,
 
   return BackendProc->wait();
 }
+#endif

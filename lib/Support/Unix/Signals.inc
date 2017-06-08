@@ -171,8 +171,9 @@ static void RegisterHandlers() {
 static void UnregisterHandlers() {
   // Restore all of the signal handlers to how they were before we showed up.
   for (unsigned i = 0, e = NumRegisteredSignals; i != e; ++i)
-    sigaction(RegisteredSignalInfo[i].SigNo,
-              &RegisteredSignalInfo[i].SA, nullptr);
+    ;
+    //sigaction(RegisteredSignalInfo[i].SigNo,
+    //          &RegisteredSignalInfo[i].SA, nullptr);
   NumRegisteredSignals = 0;
 }
 
@@ -220,9 +221,9 @@ static RETSIGTYPE SignalHandler(int Sig) {
   UnregisterHandlers();
 
   // Unmask all potentially blocked kill signals.
-  sigset_t SigMask;
-  sigfillset(&SigMask);
-  sigprocmask(SIG_UNBLOCK, &SigMask, nullptr);
+  //sigset_t SigMask;
+  //sigfillset(&SigMask);
+  //sigprocmask(SIG_UNBLOCK, &SigMask, nullptr);
 
   {
     unique_lock<SmartMutex<true>> Guard(*SignalsMutex);

@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <fstream>
 #include <sstream>
+#include <sys/redox.h>
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
@@ -281,6 +282,7 @@ std::error_code create_directory(const Twine &path, bool IgnoreExisting,
   return std::error_code();
 }
 
+#if 0
 // Note that we are using symbolic link because hard links are not supported by
 // all filesystems (SMB doesn't).
 std::error_code create_link(const Twine &to, const Twine &from) {
@@ -308,6 +310,7 @@ std::error_code create_hard_link(const Twine &to, const Twine &from) {
 
   return std::error_code();
 }
+#endif
 
 std::error_code remove(const Twine &path, bool IgnoreNonExisting) {
   SmallString<128> path_storage;
@@ -486,6 +489,7 @@ std::error_code setLastModificationAndAccessTime(int FD, TimePoint<> Time) {
 #endif
 }
 
+/*
 std::error_code mapped_file_region::init(int FD, uint64_t Offset,
                                          mapmode Mode) {
   assert(Size != 0);
@@ -535,6 +539,7 @@ const char *mapped_file_region::const_data() const {
 int mapped_file_region::alignment() {
   return Process::getPageSize();
 }
+*/
 
 std::error_code detail::directory_iterator_construct(detail::DirIterState &it,
                                                 StringRef path){
@@ -596,11 +601,12 @@ std::error_code openFileForRead(const Twine &Name, int &ResultFD,
   if(!RealPath)
     return std::error_code();
   RealPath->clear();
-#if defined(F_GETPATH)
+#if 1
   // When F_GETPATH is availble, it is the quickest way to get
   // the real path name.
   char Buffer[MAXPATHLEN];
-  if (::fcntl(ResultFD, F_GETPATH, Buffer) != -1)
+  //if (::fcntl(ResultFD, F_GETPATH, Buffer) != -1)
+  if (::redox_fpath(ResultFD, Buffer, MAXPATHLEN) != -1)
     RealPath->append(Buffer, Buffer + strlen(Buffer));
 #else
   char Buffer[PATH_MAX];
@@ -653,11 +659,12 @@ std::error_code getPathFromOpenFD(int FD, SmallVectorImpl<char> &ResultPath) {
   if (FD < 0)
     return make_error_code(errc::bad_file_descriptor);
 
-#if defined(F_GETPATH)
+#if 1
   // When F_GETPATH is availble, it is the quickest way to get
   // the path from a file descriptor.
   ResultPath.reserve(MAXPATHLEN);
-  if (::fcntl(FD, F_GETPATH, ResultPath.begin()) == -1)
+  //if (::fcntl(FD, F_GETPATH, ResultPath.begin()) == -1)
+  if (::redox_fpath(FD, ResultPath.begin(), MAXPATHLEN) == -1)
     return std::error_code(errno, std::generic_category());
 
   ResultPath.set_size(strlen(ResultPath.begin()));

@@ -1,3 +1,4 @@
+/*
 //===- Unix/Memory.cpp - Generic UNIX System Configuration ------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -332,3 +333,4 @@ void Memory::InvalidateInstructionCache(const void *Addr,
 
 } // namespace sys
 } // namespace llvm
+*/
