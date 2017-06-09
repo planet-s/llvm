@@ -1,3 +1,4 @@
+#if 0
 //===-LTOBackend.cpp - LLVM Link Time Optimizer Backend -------------------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -213,6 +214,7 @@ void codegen(Config &Conf, TargetMachine *TM, AddStreamFn AddStream,
   CodeGenPasses.run(Mod);
 }
 
+#if 0
 void splitCodeGen(Config &C, TargetMachine *TM, AddStreamFn AddStream,
                   unsigned ParallelCodeGenParallelismLevel,
                   std::unique_ptr<Module> Mod) {
@@ -260,6 +262,7 @@ void splitCodeGen(Config &C, TargetMachine *TM, AddStreamFn AddStream,
   // can leave the function scope.
   CodegenThreadPool.wait();
 }
+#endif
 
 Expected<const Target *> initAndLookupTarget(Config &C, Module &Mod) {
   if (!C.OverrideTriple.empty())
@@ -373,3 +376,4 @@ Error lto::thinBackend(Config &Conf, unsigned Task, AddStreamFn AddStream,
   codegen(Conf, TM.get(), AddStream, Task, Mod);
   return Error::success();
 }
+#endif

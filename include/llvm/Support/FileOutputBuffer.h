@@ -43,17 +43,17 @@ public:
 
   /// Returns a pointer to the start of the buffer.
   uint8_t *getBufferStart() {
-    return (uint8_t*)Region->data();
+    return data;
   }
 
   /// Returns a pointer to the end of the buffer.
   uint8_t *getBufferEnd() {
-    return (uint8_t*)Region->data() + Region->size();
+    return data + size;
   }
 
   /// Returns size of the buffer.
   size_t getBufferSize() const {
-    return Region->size();
+    return size;
   }
 
   /// Returns path where file will show up if buffer is committed.
@@ -77,10 +77,12 @@ private:
   FileOutputBuffer(const FileOutputBuffer &) = delete;
   FileOutputBuffer &operator=(const FileOutputBuffer &) = delete;
 
-  FileOutputBuffer(std::unique_ptr<llvm::sys::fs::mapped_file_region> R,
+  FileOutputBuffer(uint8_t *data, size_t size, int fd,
                    StringRef Path, StringRef TempPath, bool IsRegular);
 
-  std::unique_ptr<llvm::sys::fs::mapped_file_region> Region;
+  uint8_t *data;
+  size_t size;
+  int FD;
   SmallString<128>    FinalPath;
   SmallString<128>    TempPath;
   bool IsRegular;

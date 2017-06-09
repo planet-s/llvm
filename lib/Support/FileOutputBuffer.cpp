@@ -25,19 +25,18 @@
 #include <io.h>
 #endif
 
-using llvm::sys::fs::mapped_file_region;
-
 namespace llvm {
-FileOutputBuffer::FileOutputBuffer(std::unique_ptr<mapped_file_region> R,
+FileOutputBuffer::FileOutputBuffer(uint8_t *data, size_t size, int FD,
                                    StringRef Path, StringRef TmpPath,
                                    bool IsRegular)
-    : Region(std::move(R)), FinalPath(Path), TempPath(TmpPath),
+    : data(data), size(size), FD(FD), FinalPath(Path), TempPath(TmpPath),
       IsRegular(IsRegular) {}
 
 FileOutputBuffer::~FileOutputBuffer() {
   // Close the mapping before deleting the temp file, so that the removal
   // succeeds.
-  Region.reset();
+  write(FD, data, size);
+  delete [] data;
   sys::fs::remove(Twine(TempPath));
 }
 
@@ -104,22 +103,19 @@ FileOutputBuffer::create(StringRef FilePath, size_t Size, unsigned Flags) {
     return EC;
 #endif
 
-  auto MappedFile = llvm::make_unique<mapped_file_region>(
-      FD, mapped_file_region::readwrite, Size, 0, EC);
-  int Ret = close(FD);
-  if (EC)
-    return EC;
-  if (Ret)
-    return std::error_code(errno, std::generic_category());
+  uint8_t *data = new uint8_t[Size];
+  if (read(FD, data, Size) == -1)
+     return std::error_code(errno, std::generic_category());
 
-  std::unique_ptr<FileOutputBuffer> Buf(new FileOutputBuffer(
-      std::move(MappedFile), FilePath, TempFilePath, IsRegular));
+  std::unique_ptr<FileOutputBuffer> Buf(new FileOutputBuffer(data, Size, FD,
+     FilePath, TempFilePath, IsRegular));
   return std::move(Buf);
 }
 
 std::error_code FileOutputBuffer::commit() {
   // Unmap buffer, letting OS flush dirty pages to file on disk.
-  Region.reset();
+  write(FD, data, size);
+  delete [] data;
 
   std::error_code EC;
   if (IsRegular) {
