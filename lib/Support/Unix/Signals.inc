@@ -59,7 +59,7 @@ using namespace llvm;
 
 static RETSIGTYPE SignalHandler(int Sig);  // defined below.
 
-static ManagedStatic<SmartMutex<true> > SignalsMutex;
+//static ManagedStatic<SmartMutex<true> > SignalsMutex;
 
 /// InterruptFunction - The function to call if ctrl-c is pressed.
 static void (*InterruptFunction)() = nullptr;
@@ -155,7 +155,7 @@ static void RegisterHandlers() {
   // that we force its construction. This is to prevent the first use being
   // during handling an actual signal because you can't safely call new in a
   // signal handler.
-  *SignalsMutex;
+  //*SignalsMutex;
 
   // If the handlers are already registered, we're done.
   if (NumRegisteredSignals != 0) return;
@@ -226,20 +226,20 @@ static RETSIGTYPE SignalHandler(int Sig) {
   //sigprocmask(SIG_UNBLOCK, &SigMask, nullptr);
 
   {
-    unique_lock<SmartMutex<true>> Guard(*SignalsMutex);
+    //unique_lock<SmartMutex<true>> Guard(*SignalsMutex);
     RemoveFilesToRemove();
 
     if (std::find(std::begin(IntSigs), std::end(IntSigs), Sig)
         != std::end(IntSigs)) {
       if (InterruptFunction) {
         void (*IF)() = InterruptFunction;
-        Guard.unlock();
+        //Guard.unlock();
         InterruptFunction = nullptr;
         IF();        // run the interrupt function.
         return;
       }
 
-      Guard.unlock();
+      //Guard.unlock();
       raise(Sig);   // Execute the default handler.
       return;
    }
@@ -259,13 +259,13 @@ static RETSIGTYPE SignalHandler(int Sig) {
 }
 
 void llvm::sys::RunInterruptHandlers() {
-  sys::SmartScopedLock<true> Guard(*SignalsMutex);
+  //sys::SmartScopedLock<true> Guard(*SignalsMutex);
   RemoveFilesToRemove();
 }
 
 void llvm::sys::SetInterruptFunction(void (*IF)()) {
   {
-    sys::SmartScopedLock<true> Guard(*SignalsMutex);
+    //sys::SmartScopedLock<true> Guard(*SignalsMutex);
     InterruptFunction = IF;
   }
   RegisterHandlers();
@@ -275,7 +275,7 @@ void llvm::sys::SetInterruptFunction(void (*IF)()) {
 bool llvm::sys::RemoveFileOnSignal(StringRef Filename,
                                    std::string* ErrMsg) {
   {
-    sys::SmartScopedLock<true> Guard(*SignalsMutex);
+    //sys::SmartScopedLock<true> Guard(*SignalsMutex);
     FilesToRemove->push_back(Filename);
   }
 
@@ -285,7 +285,7 @@ bool llvm::sys::RemoveFileOnSignal(StringRef Filename,
 
 // DontRemoveFileOnSignal - The public API
 void llvm::sys::DontRemoveFileOnSignal(StringRef Filename) {
-  sys::SmartScopedLock<true> Guard(*SignalsMutex);
+  //sys::SmartScopedLock<true> Guard(*SignalsMutex);
   std::vector<std::string>::reverse_iterator RI =
       find(reverse(*FilesToRemove), Filename);
   std::vector<std::string>::iterator I = FilesToRemove->end();
