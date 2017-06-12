@@ -1,4 +1,3 @@
-/*
 //===- Unix/Memory.cpp - Generic UNIX System Configuration ------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -16,6 +15,7 @@
 #include "llvm/Support/DataTypes.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/Process.h"
+#include <sys/redox.h>
 
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
@@ -41,6 +41,7 @@ extern "C" void __clear_cache(void *, void*);
 
 namespace {
 
+/*
 int getPosixProtectionFlags(unsigned Flags) {
   switch (Flags) {
   case llvm::sys::Memory::MF_READ:
@@ -73,6 +74,7 @@ int getPosixProtectionFlags(unsigned Flags) {
   // Provide a default return value as required by some compilers.
   return PROT_NONE;
 }
+*/
 
 } // anonymous namespace
 
@@ -88,6 +90,7 @@ Memory::allocateMappedMemory(size_t NumBytes,
   if (NumBytes == 0)
     return MemoryBlock();
 
+  /*
   static const size_t PageSize = Process::getPageSize();
   const size_t NumPages = (NumBytes+PageSize-1)/PageSize;
 
@@ -118,10 +121,24 @@ Memory::allocateMappedMemory(size_t NumBytes,
     EC = std::error_code(errno, std::generic_category());
     return MemoryBlock();
   }
+*/
+
+  void *physaddr = redox_physalloc(NumBytes);
+  if (physaddr == NULL) {
+    EC = std::error_code(errno, std::generic_category());
+    return MemoryBlock();
+  }
+
+  void *Addr = ::redox_physmap(physaddr, NumBytes, 1);
+  if (Addr == NULL) {
+    EC = std::error_code(errno, std::generic_category());
+    return MemoryBlock();
+  }
 
   MemoryBlock Result;
   Result.Address = Addr;
-  Result.Size = NumPages*PageSize;
+  Result.Size = NumBytes;
+  Result.PhysAddress = physaddr;
 
   if (PFlags & MF_EXEC)
     Memory::InvalidateInstructionCache(Result.Address, Result.Size);
@@ -134,10 +151,18 @@ Memory::releaseMappedMemory(MemoryBlock &M) {
   if (M.Address == nullptr || M.Size == 0)
     return std::error_code();
 
+  /*
   if (0 != ::munmap(M.Address, M.Size))
+    return std::error_code(errno, std::generic_category());
+  */
+
+  if (::redox_physunmap(M.Address) != 0)
+    return std::error_code(errno, std::generic_category());
+  if (::redox_physfree(M.PhysAddress, M.Size) != 0)
     return std::error_code(errno, std::generic_category());
 
   M.Address = nullptr;
+  M.PhysAddress = nullptr;
   M.Size = 0;
 
   return std::error_code();
@@ -145,6 +170,8 @@ Memory::releaseMappedMemory(MemoryBlock &M) {
 
 std::error_code
 Memory::protectMappedMemory(const MemoryBlock &M, unsigned Flags) {
+// XXX
+/*
   static const size_t PageSize = Process::getPageSize();
   if (M.Address == nullptr || M.Size == 0)
     return std::error_code();
@@ -164,9 +191,11 @@ Memory::protectMappedMemory(const MemoryBlock &M, unsigned Flags) {
   if (Flags & MF_EXEC)
     Memory::InvalidateInstructionCache(M.Address, M.Size);
 
+*/
   return std::error_code();
 }
 
+/*
 /// AllocateRWX - Allocate a slab of memory with read/write/execute
 /// permissions.  This is typically used for JIT applications where we want
 /// to emit code to the memory then jump to it.  Getting this type of memory
@@ -285,6 +314,7 @@ bool Memory::setRangeExecutable(const void *Addr, size_t Size) {
   return true;
 #endif
 }
+*/
 
 /// InvalidateInstructionCache - Before the JIT can run a block of code
 /// that has been emitted it must invalidate the instruction cache on some
@@ -333,4 +363,3 @@ void Memory::InvalidateInstructionCache(const void *Addr,
 
 } // namespace sys
 } // namespace llvm
-*/

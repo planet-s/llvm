@@ -36,6 +36,7 @@ namespace sys {
   private:
     void *Address;    ///< Address of first byte of memory area
     size_t Size;      ///< Size, in bytes of the memory area
+    void *PhysAddress;
     friend class Memory;
   };
 
