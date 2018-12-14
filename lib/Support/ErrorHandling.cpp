@@ -45,7 +45,7 @@ static void *ErrorHandlerUserData = nullptr;
 static fatal_error_handler_t BadAllocErrorHandler = nullptr;
 static void *BadAllocErrorHandlerUserData = nullptr;
 
-#if 0
+#if LLVM_ENABLE_THREADS == 1
 // Mutexes to synchronize installing error handlers and calling error handlers.
 // Do not use ManagedStatic, or that may allocate memory while attempting to
 // report an OOM.
@@ -63,7 +63,7 @@ static std::mutex BadAllocErrorHandlerMutex;
 
 void llvm::install_fatal_error_handler(fatal_error_handler_t handler,
                                        void *user_data) {
-#if 0
+#if LLVM_ENABLE_THREADS == 1
   std::lock_guard<std::mutex> Lock(ErrorHandlerMutex);
 #endif
   assert(!ErrorHandler && "Error handler already registered!\n");
@@ -72,7 +72,7 @@ void llvm::install_fatal_error_handler(fatal_error_handler_t handler,
 }
 
 void llvm::remove_fatal_error_handler() {
-#if 0
+#if LLVM_ENABLE_THREADS == 1
   std::lock_guard<std::mutex> Lock(ErrorHandlerMutex);
 #endif
   ErrorHandler = nullptr;
@@ -97,7 +97,7 @@ void llvm::report_fatal_error(const Twine &Reason, bool GenCrashDiag) {
   {
     // Only acquire the mutex while reading the handler, so as not to invoke a
     // user-supplied callback under a lock.
-#if 0
+#if LLVM_ENABLE_THREADS == 1
     std::lock_guard<std::mutex> Lock(ErrorHandlerMutex);
 #endif
     handler = ErrorHandler;
@@ -128,7 +128,7 @@ void llvm::report_fatal_error(const Twine &Reason, bool GenCrashDiag) {
 
 void llvm::install_bad_alloc_error_handler(fatal_error_handler_t handler,
                                            void *user_data) {
-#if 0
+#if LLVM_ENABLE_THREADS == 1
   std::lock_guard<std::mutex> Lock(BadAllocErrorHandlerMutex);
 #endif
   assert(!ErrorHandler && "Bad alloc error handler already registered!\n");
@@ -137,7 +137,7 @@ void llvm::install_bad_alloc_error_handler(fatal_error_handler_t handler,
 }
 
 void llvm::remove_bad_alloc_error_handler() {
-#if 0
+#if LLVM_ENABLE_THREADS == 1
   std::lock_guard<std::mutex> Lock(BadAllocErrorHandlerMutex);
 #endif
   BadAllocErrorHandler = nullptr;
@@ -150,7 +150,7 @@ void llvm::report_bad_alloc_error(const char *Reason, bool GenCrashDiag) {
   {
     // Only acquire the mutex while reading the handler, so as not to invoke a
     // user-supplied callback under a lock.
-#if 0
+#if LLVM_ENABLE_THREADS == 1
     std::lock_guard<std::mutex> Lock(BadAllocErrorHandlerMutex);
 #endif
     Handler = BadAllocErrorHandler;

@@ -236,7 +236,7 @@ std::error_code Process::SafelyCloseFileDescriptor(int FD) {
     return std::error_code(errno, std::generic_category());
   // Atomically swap our current signal mask with a full mask.
   sigset_t SavedSet;
-#if 0
+#if LLVM_ENABLE_THREADS
   if (int EC = pthread_sigmask(SIG_SETMASK, &FullSet, &SavedSet))
     return std::error_code(EC, std::generic_category());
 #else
@@ -251,7 +251,7 @@ std::error_code Process::SafelyCloseFileDescriptor(int FD) {
     ErrnoFromClose = errno;
   // Restore the signal mask back to what we saved earlier.
   int EC = 0;
-#if 0
+#if LLVM_ENABLE_THREADS
   EC = pthread_sigmask(SIG_SETMASK, &SavedSet, nullptr);
 #else
   //if (sigprocmask(SIG_SETMASK, &SavedSet, nullptr) < 0)
@@ -295,7 +295,7 @@ static unsigned getColumns(int FileID) {
 
   unsigned Columns = 0;
 
-#if defined(HAVE_SYS_IOCTL_H) && defined(HAVE_TERMIOS_H) && ! defined(__redox__)
+#if defined(HAVE_SYS_IOCTL_H) && defined(HAVE_TERMIOS_H) && !defined(__redox__)
   // Try to determine the width of the terminal.
   struct winsize ws;
   if (ioctl(FileID, TIOCGWINSZ, &ws) == 0)

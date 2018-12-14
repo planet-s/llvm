@@ -44,7 +44,7 @@ std::string StrError(int errnum) {
   buffer[0] = '\0';
 #endif
 
-#if 0
+#ifdef HAVE_STRERROR_R
   // strerror_r is thread-safe.
 #if defined(__GLIBC__) && defined(_GNU_SOURCE)
   // glibc defines its own incompatible version of strerror_r
@@ -54,6 +54,7 @@ std::string StrError(int errnum) {
   strerror_r(errnum, buffer, MaxErrStrLen - 1);
   str = buffer;
 #endif
+#elif HAVE_DECL_STRERROR_S // "Windows Secure API"
   strerror_s(buffer, MaxErrStrLen - 1, errnum);
   str = buffer;
 #elif defined(HAVE_STRERROR)

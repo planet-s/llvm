@@ -29,14 +29,15 @@ using namespace llvm;
 //===----------------------------------------------------------------------===//
 
 bool llvm::llvm_is_multithreaded() {
-#if 0
+#if LLVM_ENABLE_THREADS != 0
   return true;
 #else
   return false;
 #endif
 }
 
-#if 1
+#if LLVM_ENABLE_THREADS == 0 ||                                                \
+    (!defined(_WIN32) && !defined(HAVE_PTHREAD_H))
 // Support for non-Win32, non-pthread implementation.
 void llvm::llvm_execute_on_thread(void (*Fn)(void *), void *UserData,
                                   unsigned RequestedStackSize) {

@@ -230,16 +230,14 @@ uint32_t file_status::getLinkCount() const {
 }
 
 ErrorOr<space_info> disk_space(const Twine &Path) {
-  /*
   struct STATVFS Vfs;
   if (::STATVFS(Path.str().c_str(), &Vfs))
     return std::error_code(errno, std::generic_category());
   auto FrSize = STATVFS_F_FRSIZE(Vfs);
-  */
   space_info SpaceInfo;
-  SpaceInfo.capacity = 1000000000;
-  SpaceInfo.free = 1000000000;
-  SpaceInfo.available = 1000000000;
+  SpaceInfo.capacity = static_cast<uint64_t>(Vfs.f_blocks) * FrSize;
+  SpaceInfo.free = static_cast<uint64_t>(Vfs.f_bfree) * FrSize;
+  SpaceInfo.available = static_cast<uint64_t>(Vfs.f_bavail) * FrSize;
   return SpaceInfo;
 }
 

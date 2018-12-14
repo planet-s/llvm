@@ -7,15 +7,15 @@ set(LLVM_LINK_COMPONENTS
   XRay
   )
 
-#add_llvm_tool(llvm-xray
-#  func-id-helper.cpp
-#  llvm-xray.cpp
-#  xray-account.cpp
-#  xray-color-helper.cpp
-#  xray-converter.cpp
-#  xray-extract.cpp
-#  xray-graph-diff.cpp
-#  xray-graph.cpp
-#  xray-registry.cpp
-#  xray-stacks.cpp
-#  )
+add_llvm_tool(llvm-xray
+  func-id-helper.cpp
+  llvm-xray.cpp
+  xray-account.cpp
+  xray-color-helper.cpp
+  xray-converter.cpp
+  xray-extract.cpp
+  xray-graph-diff.cpp
+  xray-graph.cpp
+  xray-registry.cpp
+  xray-stacks.cpp
+  )
