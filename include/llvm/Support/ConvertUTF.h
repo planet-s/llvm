@@ -94,6 +94,10 @@
 #include <string>
 #include <system_error>
 
+namespace std {
+    typedef basic_string<wchar_t> wstring;
+}
+
 // Wrap everything in namespace llvm so that programs can link with llvm and
 // their own version of the unicode libraries.
 

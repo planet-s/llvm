@@ -29,7 +29,7 @@ namespace llvm {
       /// This is embedded in the class and we avoid malloc'ing/free'ing it,
       /// to make this class more safe for use along with CrashRecoveryContext.
       union {
-        char data[sizeof(ThreadLocalDataTy)];
+        void *data;
         ThreadLocalDataTy align_data;
       };
     public:

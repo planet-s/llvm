@@ -344,7 +344,7 @@ bool Parser::parseNumber(char First, Value &Out) {
   char *End;
   // Try first to parse as integer, and if so preserve full 64 bits.
   // strtoll returns long long >= 64 bits, so check it's in range too.
-  auto I = std::strtoll(S.c_str(), &End, 10);
+  auto I = ::strtoll(S.c_str(), &End, 10);
   if (End == S.end() && I >= std::numeric_limits<int64_t>::min() &&
       I <= std::numeric_limits<int64_t>::max()) {
     Out = int64_t(I);

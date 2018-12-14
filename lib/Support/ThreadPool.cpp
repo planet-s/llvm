@@ -1,3 +1,4 @@
+#if 0
 //==-- llvm/Support/ThreadPool.cpp - A ThreadPool implementation -*- C++ -*-==//
 //
 //                     The LLVM Compiler Infrastructure
@@ -143,4 +144,5 @@ ThreadPool::~ThreadPool() {
   wait();
 }
 
+#endif
 #endif

@@ -19,7 +19,7 @@
 
 #include "llvm/Config/llvm-config.h"
 
-#if LLVM_ENABLE_THREADS
+#if 0
 
 #include <thread>
 

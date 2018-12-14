@@ -35,20 +35,21 @@ namespace {
 class OnDiskBuffer : public FileOutputBuffer {
 public:
   OnDiskBuffer(StringRef Path, fs::TempFile Temp,
-               std::unique_ptr<fs::mapped_file_region> Buf)
-      : FileOutputBuffer(Path), Buffer(std::move(Buf)), Temp(std::move(Temp)) {}
+               uint8_t *data, size_t size, int FD)
+      : FileOutputBuffer(Path), data(data), size(size), FD(FD), Temp(std::move(Temp)) {}
 
-  uint8_t *getBufferStart() const override { return (uint8_t *)Buffer->data(); }
+  uint8_t *getBufferStart() const override { return data; }
 
   uint8_t *getBufferEnd() const override {
-    return (uint8_t *)Buffer->data() + Buffer->size();
+    return data + size;
   }
 
-  size_t getBufferSize() const override { return Buffer->size(); }
+  size_t getBufferSize() const override { return size; }
 
   Error commit() override {
     // Unmap buffer, letting OS flush dirty pages to file on disk.
-    Buffer.reset();
+    write(FD, data, size);
+    delete [] data;
 
     // Atomically replace the existing file with the new one.
     return Temp.keep(FinalPath);
@@ -57,7 +58,8 @@ public:
   ~OnDiskBuffer() override {
     // Close the mapping before deleting the temp file, so that the removal
     // succeeds.
-    Buffer.reset();
+    write(FD, data, size);
+    delete [] data;
     consumeError(Temp.discard());
   }
 
@@ -68,7 +70,9 @@ public:
   }
 
 private:
-  std::unique_ptr<fs::mapped_file_region> Buffer;
+  uint8_t * data;
+  size_t size;
+  int FD;
   fs::TempFile Temp;
 };
 
@@ -141,16 +145,12 @@ createOnDiskBuffer(StringRef Path, size_t Size, bool InitExisting,
 #endif
   }
 
-  // Mmap it.
-  std::error_code EC;
-  auto MappedFile = llvm::make_unique<fs::mapped_file_region>(
-      File.FD, fs::mapped_file_region::readwrite, Size, 0, EC);
-  if (EC) {
-    consumeError(File.discard());
-    return errorCodeToError(EC);
+  uint8_t *data = new uint8_t[Size];
+  if (read(File.FD, data, Size) == -1) {
+      return errorCodeToError(std::error_code(errno, std::generic_category()));
   }
   return llvm::make_unique<OnDiskBuffer>(Path, std::move(File),
-                                         std::move(MappedFile));
+                                         data, Size, File.FD);
 }
 
 // Create an instance of FileOutputBuffer.

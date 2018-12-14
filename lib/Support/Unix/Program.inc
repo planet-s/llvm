@@ -331,7 +331,7 @@ namespace llvm {
 
 ProcessInfo sys::Wait(const ProcessInfo &PI, unsigned SecondsToWait,
                       bool WaitUntilTerminates, std::string *ErrMsg) {
-  struct sigaction Act, Old;
+  //struct sigaction Act, Old;
   assert(PI.Pid && "invalid pid to wait on, process not started?");
 
   int WaitPidOptions = 0;
@@ -339,6 +339,7 @@ ProcessInfo sys::Wait(const ProcessInfo &PI, unsigned SecondsToWait,
   if (WaitUntilTerminates) {
     SecondsToWait = 0;
   } else if (SecondsToWait) {
+  /*
     // Install a timeout handler.  The handler itself does nothing, but the
     // simple fact of having a handler at all causes the wait below to return
     // with EINTR, unlike if we used SIG_IGN.
@@ -347,6 +348,7 @@ ProcessInfo sys::Wait(const ProcessInfo &PI, unsigned SecondsToWait,
     sigemptyset(&Act.sa_mask);
     sigaction(SIGALRM, &Act, &Old);
     alarm(SecondsToWait);
+  */
   } else if (SecondsToWait == 0)
     WaitPidOptions = WNOHANG;
 
@@ -368,8 +370,8 @@ ProcessInfo sys::Wait(const ProcessInfo &PI, unsigned SecondsToWait,
         kill(PI.Pid, SIGKILL);
 
         // Turn off the alarm and restore the signal handler
-        alarm(0);
-        sigaction(SIGALRM, &Old, nullptr);
+        //alarm(0);
+        //sigaction(SIGALRM, &Old, nullptr);
 
         // Wait for child to die
         if (wait(&status) != ChildPid)
@@ -387,11 +389,13 @@ ProcessInfo sys::Wait(const ProcessInfo &PI, unsigned SecondsToWait,
     }
   }
 
+  /*
   // We exited normally without timeout, so turn off the timer.
   if (SecondsToWait && !WaitUntilTerminates) {
     alarm(0);
     sigaction(SIGALRM, &Old, nullptr);
   }
+  */
 
   // Return the proper exit status. Detect error conditions
   // so we can return -1 for them and set ErrMsg informatively.
@@ -456,6 +460,7 @@ llvm::sys::writeFileWithEncoding(StringRef FileName, StringRef Contents,
 
 bool llvm::sys::commandLineFitsWithinSystemLimits(StringRef Program,
                                                   ArrayRef<StringRef> Args) {
+  /*
   static long ArgMax = sysconf(_SC_ARG_MAX);
   // POSIX requires that _POSIX_ARG_MAX is 4096, which is the lowest possible
   // value for ARG_MAX on a POSIX compliant system.
@@ -491,7 +496,7 @@ bool llvm::sys::commandLineFitsWithinSystemLimits(StringRef Program,
       return false;
     }
   }
-
+  */
   return true;
 }
 }
