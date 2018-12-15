@@ -234,7 +234,6 @@ Memory::protectMappedMemory(const MemoryBlock &M, unsigned Flags) {
   return std::error_code();
 }
 
-#if !defined(__redox__)
 /// InvalidateInstructionCache - Before the JIT can run a block of code
 /// that has been emitted it must invalidate the instruction cache on some
 /// platforms.
@@ -284,7 +283,6 @@ void Memory::InvalidateInstructionCache(const void *Addr,
 
   ValgrindDiscardTranslations(Addr, Len);
 }
-#endif
 
 } // namespace sys
 } // namespace llvm
