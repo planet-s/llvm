@@ -284,8 +284,13 @@ const_iterator &const_iterator::operator++() {
   if (is_separator(Path[Position], S)) {
     // Root dir.
     if (was_net ||
+    #if defined(__redox__)
+        Component.endswith(":")
+    #else
         // c:/
-        (real_style(S) == Style::windows && Component.endswith(":"))) {
+        (real_style(S) == Style::windows && Component.endswith(":"))
+    #endif
+    ) {
       Component = Path.substr(Position, 1);
       return *this;
     }
