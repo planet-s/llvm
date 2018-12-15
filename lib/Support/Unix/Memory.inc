@@ -16,7 +16,6 @@
 #include "llvm/Support/DataTypes.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/Process.h"
-#include <sys/redox.h>
 
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
@@ -28,6 +27,10 @@
 
 #ifdef __Fuchsia__
 #include <zircon/syscalls.h>
+#endif
+
+#if defined(__redox__)
+#include <sys/redox.h>
 #endif
 
 #if defined(__mips__)
@@ -46,7 +49,7 @@ extern "C" void __clear_cache(void *, void*);
 
 namespace {
 
-/*
+#if !defined(__redox__)
 int getPosixProtectionFlags(unsigned Flags) {
   switch (Flags) {
   case llvm::sys::Memory::MF_READ:
@@ -79,7 +82,7 @@ int getPosixProtectionFlags(unsigned Flags) {
   // Provide a default return value as required by some compilers.
   return PROT_NONE;
 }
-*/
+#endif
 
 } // anonymous namespace
 
@@ -95,7 +98,24 @@ Memory::allocateMappedMemory(size_t NumBytes,
   if (NumBytes == 0)
     return MemoryBlock();
 
-  /*
+#if defined(__redox__)
+  void *physaddr = redox_physalloc(NumBytes);
+  if (physaddr == NULL) {
+    EC = std::error_code(errno, std::generic_category());
+    return MemoryBlock();
+  }
+
+  void *Addr = ::redox_physmap(physaddr, NumBytes, 1);
+  if (Addr == NULL) {
+    EC = std::error_code(errno, std::generic_category());
+    return MemoryBlock();
+  }
+
+  MemoryBlock Result;
+  Result.Address = Addr;
+  Result.Size = NumBytes;
+  Result.PhysAddress = physaddr;
+#else
   static const size_t PageSize = Process::getPageSize();
   const size_t NumPages = (NumBytes+PageSize-1)/PageSize;
 
@@ -130,24 +150,11 @@ Memory::allocateMappedMemory(size_t NumBytes,
     EC = std::error_code(errno, std::generic_category());
     return MemoryBlock();
   }
-*/
-
-  void *physaddr = redox_physalloc(NumBytes);
-  if (physaddr == NULL) {
-    EC = std::error_code(errno, std::generic_category());
-    return MemoryBlock();
-  }
-
-  void *Addr = ::redox_physmap(physaddr, NumBytes, 1);
-  if (Addr == NULL) {
-    EC = std::error_code(errno, std::generic_category());
-    return MemoryBlock();
-  }
 
   MemoryBlock Result;
   Result.Address = Addr;
-  Result.Size = NumBytes;
-  Result.PhysAddress = physaddr;
+  Result.Size = NumPages*PageSize;
+#endif
 
   // Rely on protectMappedMemory to invalidate instruction cache.
   if (PFlags & MF_EXEC) {
@@ -164,11 +171,7 @@ Memory::releaseMappedMemory(MemoryBlock &M) {
   if (M.Address == nullptr || M.Size == 0)
     return std::error_code();
 
-  /*
-  if (0 != ::munmap(M.Address, M.Size))
-    return std::error_code(errno, std::generic_category());
-  */
-
+#if defined(__redox__)
   if (::redox_physunmap(M.Address) != 0)
     return std::error_code(errno, std::generic_category());
   if (::redox_physfree(M.PhysAddress, M.Size) != 0)
@@ -178,13 +181,21 @@ Memory::releaseMappedMemory(MemoryBlock &M) {
   M.PhysAddress = nullptr;
   M.Size = 0;
 
+#else
+  if (0 != ::munmap(M.Address, M.Size))
+    return std::error_code(errno, std::generic_category());
+
+  M.Address = nullptr;
+  M.Size = 0;
+
+#endif
   return std::error_code();
 }
 
 std::error_code
 Memory::protectMappedMemory(const MemoryBlock &M, unsigned Flags) {
 // XXX
-/*
+#if !defined(__redox__)
   static const size_t PageSize = Process::getPageSize();
   if (M.Address == nullptr || M.Size == 0)
     return std::error_code();
@@ -219,11 +230,11 @@ Memory::protectMappedMemory(const MemoryBlock &M, unsigned Flags) {
 
   if (InvalidateCache)
     Memory::InvalidateInstructionCache(M.Address, M.Size);
-*/
+#endif
   return std::error_code();
 }
 
-/*
+#if !defined(__redox__)
 /// InvalidateInstructionCache - Before the JIT can run a block of code
 /// that has been emitted it must invalidate the instruction cache on some
 /// platforms.
@@ -273,7 +284,7 @@ void Memory::InvalidateInstructionCache(const void *Addr,
 
   ValgrindDiscardTranslations(Addr, Len);
 }
-*/
+#endif
 
 } // namespace sys
 } // namespace llvm

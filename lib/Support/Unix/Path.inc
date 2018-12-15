@@ -19,9 +19,11 @@
 #include "Unix.h"
 #include <limits.h>
 #include <stdio.h>
+#if defined(__redox__)
 #include <fstream>
 #include <sstream>
 #include <sys/redox.h>
+#endif
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
