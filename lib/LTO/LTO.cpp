@@ -1,4 +1,3 @@
-#if 0
 //===-LTO.cpp - LLVM Link Time Optimizer ----------------------------------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -1255,4 +1254,3 @@ lto::setupOptimizationRemarks(LLVMContext &Context,
   DiagnosticFile->keep();
   return std::move(DiagnosticFile);
 }
-#endif

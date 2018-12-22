@@ -301,7 +301,7 @@ std::error_code create_directory(const Twine &path, bool IgnoreExisting,
   return std::error_code();
 }
 
-#if 0
+#if !defined(__redox__)
 // Note that we are using symbolic link because hard links are not supported by
 // all filesystems (SMB doesn't).
 std::error_code create_link(const Twine &to, const Twine &from) {
@@ -623,7 +623,6 @@ std::error_code setLastAccessAndModificationTime(int FD, TimePoint<> AccessTime,
 #endif
 }
 
-/*
 std::error_code mapped_file_region::init(int FD, uint64_t Offset,
                                          mapmode Mode) {
   assert(Size != 0);
@@ -688,7 +687,6 @@ const char *mapped_file_region::const_data() const {
 int mapped_file_region::alignment() {
   return Process::getPageSize();
 }
-*/
 
 std::error_code detail::directory_iterator_construct(detail::DirIterState &it,
                                                      StringRef path,

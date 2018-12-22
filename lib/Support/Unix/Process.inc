@@ -74,9 +74,9 @@ static std::pair<std::chrono::microseconds, std::chrono::microseconds> getRUsage
 // On Cygwin, getpagesize() returns 64k(AllocationGranularity) and
 // offset in mmap(3) should be aligned to the AllocationGranularity.
 unsigned Process::getPageSize() {
-  return 4096; // XXX
-/*
-#if defined(HAVE_GETPAGESIZE)
+#if defined(__redox__)
+  static const int page_size = 4096;
+#elif defined(HAVE_GETPAGESIZE)
   static const int page_size = ::getpagesize();
 #elif defined(HAVE_SYSCONF)
   static long page_size = ::sysconf(_SC_PAGE_SIZE);
@@ -84,7 +84,6 @@ unsigned Process::getPageSize() {
 #error Cannot get the page size on this machine
 #endif
   return static_cast<unsigned>(page_size);
-*/
 }
 
 size_t Process::GetMallocUsage() {
@@ -237,11 +236,15 @@ std::error_code Process::SafelyCloseFileDescriptor(int FD) {
   // Atomically swap our current signal mask with a full mask.
   sigset_t SavedSet;
 #if LLVM_ENABLE_THREADS
+  #if !defined(__redox__)
   if (int EC = pthread_sigmask(SIG_SETMASK, &FullSet, &SavedSet))
     return std::error_code(EC, std::generic_category());
+  #endif
 #else
-  //if (sigprocmask(SIG_SETMASK, &FullSet, &SavedSet) < 0)
-  //  return std::error_code(errno, std::generic_category());
+  #if !defined(__redox__)
+  if (sigprocmask(SIG_SETMASK, &FullSet, &SavedSet) < 0)
+    return std::error_code(errno, std::generic_category());
+  #endif
 #endif
   // Attempt to close the file descriptor.
   // We need to save the error, if one occurs, because our subsequent call to
@@ -252,10 +255,14 @@ std::error_code Process::SafelyCloseFileDescriptor(int FD) {
   // Restore the signal mask back to what we saved earlier.
   int EC = 0;
 #if LLVM_ENABLE_THREADS
+  #if !defined(__redox__)
   EC = pthread_sigmask(SIG_SETMASK, &SavedSet, nullptr);
+  #endif
 #else
-  //if (sigprocmask(SIG_SETMASK, &SavedSet, nullptr) < 0)
-  //  EC = errno;
+  #if !defined(__redox__)
+  if (sigprocmask(SIG_SETMASK, &SavedSet, nullptr) < 0)
+    EC = errno;
+  #endif
 #endif
   // The error code from close takes precedence over the one from
   // pthread_sigmask.

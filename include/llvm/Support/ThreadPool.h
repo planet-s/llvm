@@ -80,7 +80,6 @@ private:
   /// Tasks waiting for execution in the pool.
   std::queue<PackagedTaskTy> Tasks;
 
-#if LLVM_ENABLE_THREADS
   /// Locking and signaling for accessing the Tasks queue.
   std::mutex QueueLock;
   std::condition_variable QueueCondition;
@@ -88,7 +87,6 @@ private:
   /// Locking and signaling for job completion
   std::mutex CompletionLock;
   std::condition_variable CompletionCondition;
-#endif
 
   /// Keep track of the number of thread actually busy
   std::atomic<unsigned> ActiveThreads;

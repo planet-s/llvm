@@ -1,4 +1,3 @@
-#if 0
 //===-ThinLTOCodeGenerator.cpp - LLVM Link Time Optimizer -----------------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -1080,4 +1079,3 @@ void ThinLTOCodeGenerator::run() {
     llvm::PrintStatistics();
   reportAndResetTimings();
 }
-#endif

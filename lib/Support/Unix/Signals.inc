@@ -281,7 +281,7 @@ static void RegisterHandlers() { // Not signal-safe.
     assert(Index < array_lengthof(RegisteredSignalInfo) &&
            "Out of space for signal handlers!");
 
-    /*
+    #if !defined(__redox__)
     struct sigaction NewHandler;
 
     NewHandler.sa_handler = SignalHandler;
@@ -290,7 +290,7 @@ static void RegisterHandlers() { // Not signal-safe.
 
     // Install the new handler, save the old one in RegisteredSignalInfo.
     sigaction(Signal, &NewHandler, &RegisteredSignalInfo[Index].SA);
-    */
+    #endif
     RegisteredSignalInfo[Index].SigNo = Signal;
     ++NumRegisteredSignals;
   };
@@ -304,10 +304,10 @@ static void RegisterHandlers() { // Not signal-safe.
 static void UnregisterHandlers() {
   // Restore all of the signal handlers to how they were before we showed up.
   for (unsigned i = 0, e = NumRegisteredSignals.load(); i != e; ++i) {
-    /*
+    #if !defined(__redox__)
     sigaction(RegisteredSignalInfo[i].SigNo,
               &RegisteredSignalInfo[i].SA, nullptr);
-    */
+    #endif
     --NumRegisteredSignals;
   }
 }
@@ -326,11 +326,11 @@ static RETSIGTYPE SignalHandler(int Sig) {
   UnregisterHandlers();
 
   // Unmask all potentially blocked kill signals.
-  /*
+  #if !defined(__redox__)
   sigset_t SigMask;
   sigfillset(&SigMask);
   sigprocmask(SIG_UNBLOCK, &SigMask, nullptr);
-  */
+  #endif
 
   {
     RemoveFilesToRemove();
