@@ -162,7 +162,6 @@ MemoryBuffer::getFileSlice(const Twine &FilePath, uint64_t MapSize,
 // MemoryBuffer::getFile implementation.
 //===----------------------------------------------------------------------===//
 
-#if !defined(__redox__)
 namespace {
 /// Memory maps a file descriptor using sys::fs::mapped_file_region.
 ///
@@ -208,7 +207,6 @@ public:
   }
 };
 }
-#endif
 
 static ErrorOr<std::unique_ptr<WritableMemoryBuffer>>
 getMemoryBufferForStream(int FD, const Twine &BufferName) {
@@ -362,7 +360,6 @@ static bool shouldUseMmap(int FD,
   return true;
 }
 
-#if !defined(__redox__)
 static ErrorOr<std::unique_ptr<WriteThroughMemoryBuffer>>
 getReadWriteFile(const Twine &Filename, uint64_t FileSize, uint64_t MapSize,
                  uint64_t Offset) {
@@ -415,7 +412,6 @@ WriteThroughMemoryBuffer::getFileSlice(const Twine &Filename, uint64_t MapSize,
                                        uint64_t Offset) {
   return getReadWriteFile(Filename, -1, MapSize, Offset);
 }
-#endif
 
 template <typename MB>
 static ErrorOr<std::unique_ptr<MB>>
@@ -447,7 +443,6 @@ getOpenFileImpl(int FD, const Twine &Filename, uint64_t FileSize,
     MapSize = FileSize;
   }
 
-  #if !defined(__redox__)
   if (shouldUseMmap(FD, FileSize, MapSize, Offset, RequiresNullTerminator,
                     PageSize, IsVolatile)) {
     std::error_code EC;
@@ -457,7 +452,6 @@ getOpenFileImpl(int FD, const Twine &Filename, uint64_t FileSize,
     if (!EC)
       return std::move(Result);
   }
-  #endif
 
   auto Buf = WritableMemoryBuffer::getNewUninitMemBuffer(MapSize, Filename);
   if (!Buf) {

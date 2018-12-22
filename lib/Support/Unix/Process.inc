@@ -36,7 +36,7 @@
 // DragonFlyBSD, and OpenBSD have deprecated <malloc.h> for
 // <stdlib.h> instead. Unix.h includes this for us already.
 #if defined(HAVE_MALLOC_H) && !defined(__DragonFly__) && \
-    !defined(__OpenBSD__)
+    !defined(__OpenBSD__) 
 #include <malloc.h>
 #endif
 #if defined(HAVE_MALLCTL)
@@ -241,10 +241,8 @@ std::error_code Process::SafelyCloseFileDescriptor(int FD) {
     return std::error_code(EC, std::generic_category());
   #endif
 #else
-  #if !defined(__redox__)
   if (sigprocmask(SIG_SETMASK, &FullSet, &SavedSet) < 0)
     return std::error_code(errno, std::generic_category());
-  #endif
 #endif
   // Attempt to close the file descriptor.
   // We need to save the error, if one occurs, because our subsequent call to
@@ -259,10 +257,8 @@ std::error_code Process::SafelyCloseFileDescriptor(int FD) {
   EC = pthread_sigmask(SIG_SETMASK, &SavedSet, nullptr);
   #endif
 #else
-  #if !defined(__redox__)
   if (sigprocmask(SIG_SETMASK, &SavedSet, nullptr) < 0)
     EC = errno;
-  #endif
 #endif
   // The error code from close takes precedence over the one from
   // pthread_sigmask.

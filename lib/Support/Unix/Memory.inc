@@ -29,10 +29,6 @@
 #include <zircon/syscalls.h>
 #endif
 
-#if defined(__redox__)
-#include <sys/redox.h>
-#endif
-
 #if defined(__mips__)
 #  if defined(__OpenBSD__)
 #    include <mips64/sysarch.h>
@@ -49,7 +45,6 @@ extern "C" void __clear_cache(void *, void*);
 
 namespace {
 
-#if !defined(__redox__)
 int getPosixProtectionFlags(unsigned Flags) {
   switch (Flags) {
   case llvm::sys::Memory::MF_READ:
@@ -82,7 +77,6 @@ int getPosixProtectionFlags(unsigned Flags) {
   // Provide a default return value as required by some compilers.
   return PROT_NONE;
 }
-#endif
 
 } // anonymous namespace
 
@@ -98,24 +92,6 @@ Memory::allocateMappedMemory(size_t NumBytes,
   if (NumBytes == 0)
     return MemoryBlock();
 
-#if defined(__redox__)
-  void *physaddr = redox_physalloc(NumBytes);
-  if (physaddr == NULL) {
-    EC = std::error_code(errno, std::generic_category());
-    return MemoryBlock();
-  }
-
-  void *Addr = ::redox_physmap(physaddr, NumBytes, 1);
-  if (Addr == NULL) {
-    EC = std::error_code(errno, std::generic_category());
-    return MemoryBlock();
-  }
-
-  MemoryBlock Result;
-  Result.Address = Addr;
-  Result.Size = NumBytes;
-  Result.PhysAddress = physaddr;
-#else
   static const size_t PageSize = Process::getPageSize();
   const size_t NumPages = (NumBytes+PageSize-1)/PageSize;
 
@@ -154,7 +130,6 @@ Memory::allocateMappedMemory(size_t NumBytes,
   MemoryBlock Result;
   Result.Address = Addr;
   Result.Size = NumPages*PageSize;
-#endif
 
   // Rely on protectMappedMemory to invalidate instruction cache.
   if (PFlags & MF_EXEC) {
@@ -171,24 +146,12 @@ Memory::releaseMappedMemory(MemoryBlock &M) {
   if (M.Address == nullptr || M.Size == 0)
     return std::error_code();
 
-#if defined(__redox__)
-  if (::redox_physunmap(M.Address) != 0)
-    return std::error_code(errno, std::generic_category());
-  if (::redox_physfree(M.PhysAddress, M.Size) != 0)
-    return std::error_code(errno, std::generic_category());
-
-  M.Address = nullptr;
-  M.PhysAddress = nullptr;
-  M.Size = 0;
-
-#else
   if (0 != ::munmap(M.Address, M.Size))
     return std::error_code(errno, std::generic_category());
 
   M.Address = nullptr;
   M.Size = 0;
 
-#endif
   return std::error_code();
 }
 

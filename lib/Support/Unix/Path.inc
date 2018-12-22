@@ -301,7 +301,6 @@ std::error_code create_directory(const Twine &path, bool IgnoreExisting,
   return std::error_code();
 }
 
-#if !defined(__redox__)
 // Note that we are using symbolic link because hard links are not supported by
 // all filesystems (SMB doesn't).
 std::error_code create_link(const Twine &to, const Twine &from) {
@@ -329,7 +328,6 @@ std::error_code create_hard_link(const Twine &to, const Twine &from) {
 
   return std::error_code();
 }
-#endif
 
 std::error_code remove(const Twine &path, bool IgnoreNonExisting) {
   SmallString<128> path_storage;
