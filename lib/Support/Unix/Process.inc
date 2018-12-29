@@ -74,9 +74,7 @@ static std::pair<std::chrono::microseconds, std::chrono::microseconds> getRUsage
 // On Cygwin, getpagesize() returns 64k(AllocationGranularity) and
 // offset in mmap(3) should be aligned to the AllocationGranularity.
 unsigned Process::getPageSize() {
-#if defined(__redox__)
-  static const int page_size = 4096;
-#elif defined(HAVE_GETPAGESIZE)
+#if defined(HAVE_GETPAGESIZE)
   static const int page_size = ::getpagesize();
 #elif defined(HAVE_SYSCONF)
   static long page_size = ::sysconf(_SC_PAGE_SIZE);

@@ -36,9 +36,6 @@ namespace sys {
   private:
     void *Address;    ///< Address of first byte of memory area
     size_t Size;      ///< Size, in bytes of the memory area
-#if defined(__redox__)
-    void *PhysAddress;
-#endif
     friend class Memory;
   };
 
