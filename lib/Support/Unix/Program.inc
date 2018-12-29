@@ -331,9 +331,7 @@ namespace llvm {
 
 ProcessInfo sys::Wait(const ProcessInfo &PI, unsigned SecondsToWait,
                       bool WaitUntilTerminates, std::string *ErrMsg) {
-  #if !defined(__redox__)
   struct sigaction Act, Old;
-  #endif
   assert(PI.Pid && "invalid pid to wait on, process not started?");
 
   int WaitPidOptions = 0;
@@ -341,7 +339,6 @@ ProcessInfo sys::Wait(const ProcessInfo &PI, unsigned SecondsToWait,
   if (WaitUntilTerminates) {
     SecondsToWait = 0;
   } else if (SecondsToWait) {
-  #if !defined(__redox__)
     // Install a timeout handler.  The handler itself does nothing, but the
     // simple fact of having a handler at all causes the wait below to return
     // with EINTR, unlike if we used SIG_IGN.
@@ -350,7 +347,6 @@ ProcessInfo sys::Wait(const ProcessInfo &PI, unsigned SecondsToWait,
     sigemptyset(&Act.sa_mask);
     sigaction(SIGALRM, &Act, &Old);
     alarm(SecondsToWait);
-  #endif
   } else if (SecondsToWait == 0)
     WaitPidOptions = WNOHANG;
 
@@ -372,10 +368,8 @@ ProcessInfo sys::Wait(const ProcessInfo &PI, unsigned SecondsToWait,
         kill(PI.Pid, SIGKILL);
 
         // Turn off the alarm and restore the signal handler
-        #if !defined(__redox__)
         alarm(0);
         sigaction(SIGALRM, &Old, nullptr);
-        #endif
 
         // Wait for child to die
         if (wait(&status) != ChildPid)
@@ -393,13 +387,11 @@ ProcessInfo sys::Wait(const ProcessInfo &PI, unsigned SecondsToWait,
     }
   }
 
-  #if !defined(__redox__)
   // We exited normally without timeout, so turn off the timer.
   if (SecondsToWait && !WaitUntilTerminates) {
     alarm(0);
     sigaction(SIGALRM, &Old, nullptr);
   }
-  #endif
 
   // Return the proper exit status. Detect error conditions
   // so we can return -1 for them and set ErrMsg informatively.

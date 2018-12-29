@@ -315,19 +315,16 @@ static void CrashRecoverySignalHandler(int Signal) {
   }
 
   // Unblock the signal we received.
-  #if !defined(__redox__)
   sigset_t SigMask;
   sigemptyset(&SigMask);
   sigaddset(&SigMask, Signal);
   sigprocmask(SIG_UNBLOCK, &SigMask, nullptr);
-  #endif
 
   if (CRCI)
     const_cast<CrashRecoveryContextImpl*>(CRCI)->HandleCrash();
 }
 
 static void installExceptionOrSignalHandlers() {
-  #if !defined(__redox__)
   // Setup the signal handler.
   struct sigaction Handler;
   Handler.sa_handler = CrashRecoverySignalHandler;
@@ -337,15 +334,12 @@ static void installExceptionOrSignalHandlers() {
   for (unsigned i = 0; i != NumSignals; ++i) {
     sigaction(Signals[i], &Handler, &PrevActions[i]);
   }
-  #endif
 }
 
 static void uninstallExceptionOrSignalHandlers() {
-  #if !defined(__redox__)
   // Restore the previous signal handlers.
   for (unsigned i = 0; i != NumSignals; ++i)
     sigaction(Signals[i], &PrevActions[i], nullptr);
-  #endif
 }
 
 #endif // !_WIN32
