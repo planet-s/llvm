@@ -233,11 +233,9 @@ std::error_code Process::SafelyCloseFileDescriptor(int FD) {
     return std::error_code(errno, std::generic_category());
   // Atomically swap our current signal mask with a full mask.
   sigset_t SavedSet;
-#if LLVM_ENABLE_THREADS
-  #if !defined(__redox__)
+#if LLVM_ENABLE_THREADS && !defined(__redox__)
   if (int EC = pthread_sigmask(SIG_SETMASK, &FullSet, &SavedSet))
     return std::error_code(EC, std::generic_category());
-  #endif
 #else
   if (sigprocmask(SIG_SETMASK, &FullSet, &SavedSet) < 0)
     return std::error_code(errno, std::generic_category());
@@ -250,10 +248,8 @@ std::error_code Process::SafelyCloseFileDescriptor(int FD) {
     ErrnoFromClose = errno;
   // Restore the signal mask back to what we saved earlier.
   int EC = 0;
-#if LLVM_ENABLE_THREADS
-  #if !defined(__redox__)
+#if LLVM_ENABLE_THREADS && !defined(__redox__)
   EC = pthread_sigmask(SIG_SETMASK, &SavedSet, nullptr);
-  #endif
 #else
   if (sigprocmask(SIG_SETMASK, &SavedSet, nullptr) < 0)
     EC = errno;

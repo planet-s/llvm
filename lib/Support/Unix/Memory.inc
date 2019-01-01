@@ -157,7 +157,6 @@ Memory::releaseMappedMemory(MemoryBlock &M) {
 
 std::error_code
 Memory::protectMappedMemory(const MemoryBlock &M, unsigned Flags) {
-#if !defined(__redox__)
   static const size_t PageSize = Process::getPageSize();
   if (M.Address == nullptr || M.Size == 0)
     return std::error_code();
@@ -193,7 +192,6 @@ Memory::protectMappedMemory(const MemoryBlock &M, unsigned Flags) {
   if (InvalidateCache)
     Memory::InvalidateInstructionCache(M.Address, M.Size);
 
-#endif
   return std::error_code();
 }
 
