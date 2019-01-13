@@ -456,7 +456,6 @@ llvm::sys::writeFileWithEncoding(StringRef FileName, StringRef Contents,
 
 bool llvm::sys::commandLineFitsWithinSystemLimits(StringRef Program,
                                                   ArrayRef<StringRef> Args) {
-  #if !defined(__redox__)
   static long ArgMax = sysconf(_SC_ARG_MAX);
   // POSIX requires that _POSIX_ARG_MAX is 4096, which is the lowest possible
   // value for ARG_MAX on a POSIX compliant system.
@@ -492,7 +491,6 @@ bool llvm::sys::commandLineFitsWithinSystemLimits(StringRef Program,
       return false;
     }
   }
-  #endif
 
   return true;
 }
