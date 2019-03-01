@@ -212,7 +212,7 @@ static CodeModel::Model getEffectiveCodeModel(const Triple &TT,
   if (CM) {
     if (*CM != CodeModel::Small && *CM != CodeModel::Tiny &&
         *CM != CodeModel::Large) {
-      if (!TT.isOSFuchsia())
+      if ((!TT.isOSFuchsia()) && (!TT.isOSRedox()))
         report_fatal_error(
             "Only small, tiny and large code models are allowed on AArch64");
       else if (*CM != CodeModel::Kernel)
