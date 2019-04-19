@@ -292,7 +292,7 @@ static unsigned getColumns(int FileID) {
 
   unsigned Columns = 0;
 
-#if defined(HAVE_SYS_IOCTL_H) && defined(HAVE_TERMIOS_H) && !defined(__redox__)
+#if defined(HAVE_SYS_IOCTL_H) && defined(HAVE_TERMIOS_H)
   // Try to determine the width of the terminal.
   struct winsize ws;
   if (ioctl(FileID, TIOCGWINSZ, &ws) == 0)
